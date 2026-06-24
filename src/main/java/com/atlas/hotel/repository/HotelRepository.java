@@ -26,7 +26,7 @@ public interface HotelRepository extends JpaRepository<Hotel, UUID> {
           FROM hotels h
           LEFT JOIN outbox o
             ON o.aggregate_id = h.id
-           AND o.event_type = 'HotelCreated'
+           AND o.event_type = 'HOTEL_CREATED'
           WHERE o.id IS NULL
           AND h.status = 'ACTIVE'
           """, nativeQuery = true)

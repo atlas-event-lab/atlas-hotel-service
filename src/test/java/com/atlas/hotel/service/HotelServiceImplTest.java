@@ -1,6 +1,7 @@
 package com.atlas.hotel.service;
 
 import com.atlas.hotel.client.InventoryClient;
+import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.client.dto.AvailabilityResponse;
 import com.atlas.hotel.dto.CreateHotelRequest;
 import com.atlas.hotel.entity.Hotel;
@@ -69,7 +70,7 @@ class HotelServiceImplTest {
         service.createHotel(HotelTestData.aCreateHotelRequest());
 
         verify(hotelRepository).save(any(Hotel.class));
-        verify(outboxEventWriter).write(any(UUID.class), eq("HotelCreated"), any());
+        verify(outboxEventWriter).write(any(UUID.class), eq(EventType.HOTEL_CREATED), any());
     }
 
     @Test
@@ -129,7 +130,7 @@ class HotelServiceImplTest {
 
         service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(50));
 
-        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq("HotelUpdated"), any());
+        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq(EventType.HOTEL_UPDATED), any());
     }
 
     @Test
@@ -140,7 +141,7 @@ class HotelServiceImplTest {
         service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(150));
 
         verifyNoInteractions(inventoryClient);
-        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq("HotelUpdated"), any());
+        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq(EventType.HOTEL_UPDATED), any());
     }
 
     @Test
@@ -152,7 +153,7 @@ class HotelServiceImplTest {
                 HotelTestData.anUpdateHotelRequest(List.of(HotelTestData.aRoomType("Suite", 5))));
 
         verifyNoInteractions(inventoryClient);
-        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq("HotelUpdated"), any());
+        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq(EventType.HOTEL_UPDATED), any());
     }
 
     @Test
@@ -196,7 +197,7 @@ class HotelServiceImplTest {
         service.withdrawHotel(HotelTestData.HOTEL_ID);
 
         assertThat(hotel.getStatus()).isEqualTo(HotelStatus.WITHDRAWN);
-        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq("HotelDeleted"), any());
+        verify(outboxEventWriter).write(eq(HotelTestData.HOTEL_ID), eq(EventType.HOTEL_DELETED), any());
     }
 
     @Test

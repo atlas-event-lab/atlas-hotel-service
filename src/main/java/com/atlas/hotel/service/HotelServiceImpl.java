@@ -17,6 +17,7 @@ import com.atlas.hotel.entity.Money;
 import com.atlas.hotel.entity.RoomType;
 import com.atlas.hotel.event.HotelDeletedPayload;
 import com.atlas.hotel.event.HotelEventPayloadFactory;
+import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.exception.CapacityBelowReservedException;
 import com.atlas.hotel.exception.DuplicateHotelException;
 import com.atlas.hotel.exception.HotelNotFoundException;
@@ -80,7 +81,7 @@ public class HotelServiceImpl implements HotelService {
         hotel.replaceImages(toImageEntities(request.images()));
 
         Hotel saved = hotelRepository.save(hotel);
-        outboxEventWriter.write(saved.getId(), "HotelCreated", payloadFactory.toCatalogPayload(saved));
+        outboxEventWriter.write(saved.getId(), EventType.HOTEL_CREATED, payloadFactory.toCatalogPayload(saved));
 
         log.info("Hotel created: hotelId={}, name={}, city={}, roomTypes={}",
                 saved.getId(), saved.getName(), saved.getCity(), saved.getRoomTypes().size());
@@ -107,7 +108,7 @@ public class HotelServiceImpl implements HotelService {
         hotel.replaceAmenities(toAmenityEntities(request.amenities()));
         hotel.replaceImages(toImageEntities(request.images()));
 
-        outboxEventWriter.write(hotel.getId(), "HotelUpdated", payloadFactory.toCatalogPayload(hotel));
+        outboxEventWriter.write(hotel.getId(), EventType.HOTEL_UPDATED, payloadFactory.toCatalogPayload(hotel));
 
         log.info("Hotel updated: hotelId={}, name={}, roomTypes={}",
                 hotel.getId(), hotel.getName(), hotel.getRoomTypes().size());
@@ -120,7 +121,7 @@ public class HotelServiceImpl implements HotelService {
     public void withdrawHotel(UUID hotelId) {
         Hotel hotel = findHotel(hotelId);
         hotel.withdraw();
-        outboxEventWriter.write(hotel.getId(), "HotelDeleted", new HotelDeletedPayload(hotel.getId()));
+        outboxEventWriter.write(hotel.getId(), EventType.HOTEL_DELETED, new HotelDeletedPayload(hotel.getId()));
 
         log.info("Hotel withdrawn: hotelId={}", hotel.getId());
     }

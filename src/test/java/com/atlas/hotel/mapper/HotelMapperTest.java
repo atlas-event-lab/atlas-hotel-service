@@ -4,7 +4,6 @@ import com.atlas.hotel.dto.HotelResponse;
 import com.atlas.hotel.entity.Amenity;
 import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.entity.HotelImage;
-import com.atlas.hotel.hotel.mapper.HotelMapperImpl;
 import com.atlas.hotel.support.HotelTestData;
 import org.junit.jupiter.api.Test;
 

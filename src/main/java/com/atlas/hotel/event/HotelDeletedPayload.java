@@ -1,6 +1,11 @@
 package com.atlas.hotel.event;
 
+import jakarta.validation.constraints.NotNull;
+
 import java.util.UUID;
 
 /** Payload for {@code HotelDeleted} (hotel-events.yaml HotelDeletedPayload). */
-public record HotelDeletedPayload(UUID hotelId) {}
+public record HotelDeletedPayload(
+        @NotNull
+        UUID hotelId
+) {}

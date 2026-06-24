@@ -4,6 +4,7 @@ import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.event.HotelEventPayloadFactory;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
+import com.atlas.hotel.shared.messaging.EventType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class HotelCatalogReconciler {
     hotels.forEach(hotel ->
         outboxEventWriter.write(
             hotel.getId(),
-            "FlightCreated",
+            EventType.HOTEL_CREATED,
             payloadFactory.toCatalogPayload(hotel)
         ));
   }

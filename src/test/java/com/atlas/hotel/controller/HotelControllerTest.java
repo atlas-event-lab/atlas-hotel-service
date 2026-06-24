@@ -16,9 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
 
@@ -45,14 +47,18 @@ class HotelControllerTest {
     @MockitoBean HotelService hotelService;
     @MockitoBean JwtDecoder jwtDecoder;
 
-    private static final String BASE_URL = "/api/v1/hotels";
+    private static final String BASE_URL = "/admin/api/v1/hotels";
+
+    private static RequestPostProcessor adminJwt() {
+        return jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
 
     @Test
     void createHotel_valid_returns201() throws Exception {
         when(hotelService.createHotel(any(CreateHotelRequest.class))).thenReturn(HotelTestData.aHotelResponse());
 
         mvc.perform(post(BASE_URL)
-                        .with(jwt())
+                        .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(HotelTestData.aCreateHotelRequest())))
                 .andExpect(status().isCreated())
@@ -68,7 +74,7 @@ class HotelControllerTest {
         String invalidBody = "{\"name\":\"\",\"roomTypes\":[]}";
 
         mvc.perform(post(BASE_URL)
-                        .with(jwt())
+                        .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidBody))
                 .andExpect(status().isBadRequest())
@@ -81,7 +87,7 @@ class HotelControllerTest {
                 .thenThrow(new DuplicateHotelException(HotelTestData.NAME, HotelTestData.CITY));
 
         mvc.perform(post(BASE_URL)
-                        .with(jwt())
+                        .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(HotelTestData.aCreateHotelRequest())))
                 .andExpect(status().isConflict())
@@ -101,7 +107,7 @@ class HotelControllerTest {
         when(hotelService.listHotels(any()))
                 .thenReturn(new HotelListResponse(List.of(HotelTestData.aHotelResponse()), 0, 20, 1, 1));
 
-        mvc.perform(get(BASE_URL).with(jwt()))
+        mvc.perform(get(BASE_URL).with(adminJwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].hotelId").value(HotelTestData.HOTEL_ID.toString()))
                 .andExpect(jsonPath("$.totalElements").value(1));
@@ -111,7 +117,7 @@ class HotelControllerTest {
     void getHotel_found_returns200() throws Exception {
         when(hotelService.getHotel(HotelTestData.HOTEL_ID)).thenReturn(HotelTestData.aHotelResponse());
 
-        mvc.perform(get(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(jwt()))
+        mvc.perform(get(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(adminJwt()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.hotelId").value(HotelTestData.HOTEL_ID.toString()));
     }
@@ -121,7 +127,7 @@ class HotelControllerTest {
         when(hotelService.getHotel(HotelTestData.HOTEL_ID))
                 .thenThrow(new HotelNotFoundException(HotelTestData.HOTEL_ID));
 
-        mvc.perform(get(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(jwt()))
+        mvc.perform(get(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(adminJwt()))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
@@ -132,7 +138,7 @@ class HotelControllerTest {
                 .thenThrow(new CapacityBelowReservedException(HotelTestData.STANDARD_ROOM_ID, "Standard", 50, 150));
 
         mvc.perform(put(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID)
-                        .with(jwt())
+                        .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(HotelTestData.anUpdateHotelRequest(50))))
                 .andExpect(status().isConflict())
@@ -145,7 +151,7 @@ class HotelControllerTest {
                 .thenThrow(new InventoryUnavailableException(HotelTestData.STANDARD_ROOM_ID, new RuntimeException("down")));
 
         mvc.perform(put(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID)
-                        .with(jwt())
+                        .with(adminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(HotelTestData.anUpdateHotelRequest(50))))
                 .andExpect(status().isServiceUnavailable())
@@ -156,7 +162,7 @@ class HotelControllerTest {
     void withdrawHotel_returns204() throws Exception {
         doNothing().when(hotelService).withdrawHotel(HotelTestData.HOTEL_ID);
 
-        mvc.perform(delete(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(jwt()))
+        mvc.perform(delete(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(adminJwt()))
                 .andExpect(status().isNoContent());
     }
 
@@ -165,7 +171,7 @@ class HotelControllerTest {
         doThrow(new HotelNotFoundException(HotelTestData.HOTEL_ID))
                 .when(hotelService).withdrawHotel(HotelTestData.HOTEL_ID);
 
-        mvc.perform(delete(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(jwt()))
+        mvc.perform(delete(BASE_URL + "/{hotelId}", HotelTestData.HOTEL_ID).with(adminJwt()))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }

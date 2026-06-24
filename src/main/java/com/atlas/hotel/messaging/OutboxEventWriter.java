@@ -3,6 +3,7 @@ package com.atlas.hotel.messaging;
 import com.atlas.hotel.entity.OutboxEvent;
 import com.atlas.hotel.repository.OutboxRepository;
 import com.atlas.hotel.shared.messaging.EventEnvelope;
+import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.shared.web.CorrelationIdFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,13 +39,13 @@ public class OutboxEventWriter {
      * Partition key for publication is {@code aggregateId} = hotelId (partitioning.md).
      *
      * @param aggregateId the Hotel id (also the Kafka partition key)
-     * @param eventType   event name, e.g. {@code HotelCreated}
+     * @param eventType   produced event type, e.g. {@code HOTEL_CREATED}
      * @param payload     the business payload (never null, never carries metadata)
      */
-    public void write(UUID aggregateId, String eventType, Object payload) {
+    public void write(UUID aggregateId, EventType eventType, Object payload) {
         var envelope = new EventEnvelope<>(
                 UUID.randomUUID(),
-                eventType,
+                eventType.name(),
                 EVENT_VERSION,
                 Instant.now(),
                 resolveMdc(CorrelationIdFilter.TRACE_ID_MDC_KEY),

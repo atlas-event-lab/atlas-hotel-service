@@ -5,6 +5,7 @@ import com.atlas.hotel.entity.OutboxStatus;
 import com.atlas.hotel.messaging.OutboxRelay;
 import com.atlas.hotel.repository.OutboxRepository;
 import com.atlas.hotel.shared.messaging.EventTopics;
+import com.atlas.hotel.shared.messaging.EventType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +37,8 @@ class OutboxRelayTest {
     private OutboxEvent pendingHotelCreated() {
         UUID hotelId = UUID.randomUUID();
         String envelope = "{\"eventId\":\"" + UUID.randomUUID()
-                + "\",\"eventType\":\"HotelCreated\",\"payload\":{\"hotelId\":\"" + hotelId + "\"}}";
-        return new OutboxEvent(UUID.randomUUID(), "Hotel", hotelId, "HotelCreated", 1, envelope);
+                + "\",\"eventType\":\"HOTEL_CREATED\",\"payload\":{\"hotelId\":\"" + hotelId + "\"}}";
+        return new OutboxEvent(UUID.randomUUID(), "Hotel", hotelId, EventType.HOTEL_CREATED, 1, envelope);
     }
 
     @Test
