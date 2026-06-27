@@ -7,13 +7,17 @@ import com.atlas.hotel.dto.HotelImageDto;
 import com.atlas.hotel.dto.HotelListResponse;
 import com.atlas.hotel.dto.HotelResponse;
 import com.atlas.hotel.dto.MoneyRequest;
+import com.atlas.hotel.dto.MoneyResponse;
+import com.atlas.hotel.dto.RoomImageDto;
 import com.atlas.hotel.dto.RoomTypeInput;
+import com.atlas.hotel.dto.RoomTypePriceResponse;
 import com.atlas.hotel.dto.UpdateHotelRequest;
 import com.atlas.hotel.entity.Amenity;
 import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.entity.HotelImage;
 import com.atlas.hotel.entity.HotelStatus;
 import com.atlas.hotel.entity.Money;
+import com.atlas.hotel.entity.RoomImage;
 import com.atlas.hotel.entity.RoomType;
 import com.atlas.hotel.event.HotelDeletedPayload;
 import com.atlas.hotel.event.HotelEventPayloadFactory;
@@ -23,6 +27,7 @@ import com.atlas.hotel.exception.DuplicateHotelException;
 import com.atlas.hotel.exception.HotelNotFoundException;
 import com.atlas.hotel.exception.InvalidHotelException;
 import com.atlas.hotel.exception.InventoryUnavailableException;
+import com.atlas.hotel.exception.RoomTypeNotFoundException;
 import com.atlas.hotel.mapper.HotelMapper;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
@@ -134,6 +139,21 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     @Transactional(readOnly = true)
+    public RoomTypePriceResponse getRoomTypePrice(UUID hotelId, UUID roomTypeId) {
+        Hotel hotel = findHotel(hotelId);
+        RoomType roomType = hotel.getRoomTypes().stream()
+                .filter(rt -> rt.getId().equals(roomTypeId))
+                .findFirst()
+                .orElseThrow(() -> new RoomTypeNotFoundException(hotelId, roomTypeId));
+        return new RoomTypePriceResponse(
+                hotel.getId(),
+                roomType.getId(),
+                new MoneyResponse(roomType.getPricePerNight().getAmount(), roomType.getPricePerNight().getCurrency()),
+                hotel.getStatus());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public HotelListResponse listHotels(Pageable pageable) {
         Page<HotelResponse> page = hotelRepository.findAll(pageable).map(hotelMapper::toResponse);
         return HotelListResponse.from(page);
@@ -185,14 +205,18 @@ public class HotelServiceImpl implements HotelService {
     }
 
     private List<RoomType> toRoomTypeEntities(List<RoomTypeInput> inputs) {
-        return inputs.stream()
-                .map(rt -> new RoomType(
-                        UUID.randomUUID(),
-                        rt.name(),
-                        rt.totalRooms(),
-                        rt.maxOccupancy(),
-                        toMoney(rt.pricePerNight())))
-                .toList();
+        return inputs.stream().map(roomTypeInput -> {
+                var roomType = new RoomType(
+                    UUID.randomUUID(),
+                    roomTypeInput.name(),
+                    roomTypeInput.totalRooms(),
+                    roomTypeInput.maxOccupancy(),
+                    toMoney(roomTypeInput.pricePerNight())
+                );
+                roomType.replaceImages(toRoomImageEntities(roomTypeInput.images()));
+                return roomType;
+            }
+        ).toList();
     }
 
     private List<Amenity> toAmenityEntities(List<String> amenities) {
@@ -211,6 +235,15 @@ public class HotelServiceImpl implements HotelService {
         return images.stream()
                 .map(img -> new HotelImage(UUID.randomUUID(), img.url(), img.caption()))
                 .toList();
+    }
+
+    private List<RoomImage> toRoomImageEntities(List<RoomImageDto> images) {
+        if (images == null) {
+            return List.of();
+        }
+        return images.stream()
+            .map(img -> new RoomImage(UUID.randomUUID(), img.url(), img.caption()))
+            .toList();
     }
 
     private Money toMoney(MoneyRequest money) {

@@ -1,8 +1,10 @@
 package com.atlas.hotel.event;
 
+import com.atlas.hotel.dto.HotelImageDto;
 import com.atlas.hotel.entity.Amenity;
 import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.entity.HotelImage;
+import com.atlas.hotel.entity.RoomImage;
 import com.atlas.hotel.entity.RoomType;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +26,8 @@ public class HotelEventPayloadFactory {
                 hotel.getRating(),
                 hotel.getRoomTypes().stream().map(this::toRoomTypeEvent).toList(),
                 hotel.getAmenities().stream().map(Amenity::getName).toList(),
-                hotel.getImages().stream().map(HotelImage::getUrl).toList());
+                hotel.getImages().stream()
+                    .map(img -> new HotelImageDto(img.getUrl(), img.getCaption())).toList());
     }
 
     private RoomTypeEvent toRoomTypeEvent(RoomType roomType) {
@@ -33,6 +36,8 @@ public class HotelEventPayloadFactory {
                 roomType.getName(),
                 roomType.getTotalRooms(),
                 roomType.getMaxOccupancy(),
-                new MoneyEvent(roomType.getPricePerNight().getAmount(), roomType.getPricePerNight().getCurrency()));
+                new MoneyEvent(roomType.getPricePerNight().getAmount(), roomType.getPricePerNight().getCurrency()),
+                roomType.getImages().stream().map(RoomImage::toRoomImageDto).toList()
+        );
     }
 }

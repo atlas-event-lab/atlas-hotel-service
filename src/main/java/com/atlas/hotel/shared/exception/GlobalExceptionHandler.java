@@ -5,6 +5,7 @@ import com.atlas.hotel.exception.DuplicateHotelException;
 import com.atlas.hotel.exception.HotelNotFoundException;
 import com.atlas.hotel.exception.InvalidHotelException;
 import com.atlas.hotel.exception.InventoryUnavailableException;
+import com.atlas.hotel.exception.RoomTypeNotFoundException;
 import com.atlas.hotel.shared.web.CorrelationIdFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -80,9 +81,9 @@ public class GlobalExceptionHandler {
         return respond(HttpStatus.BAD_REQUEST, problem);
     }
 
-    @ExceptionHandler(HotelNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleHotelNotFound(
-            HotelNotFoundException ex, HttpServletRequest request) {
+    @ExceptionHandler({HotelNotFoundException.class, RoomTypeNotFoundException.class})
+    public ResponseEntity<ProblemDetail> handleNotFound(
+            RuntimeException ex, HttpServletRequest request) {
 
         ProblemDetail problem = problemOf(HttpStatus.NOT_FOUND, ex.getMessage(),
                 ProblemTypes.NOT_FOUND, "Not Found", request);

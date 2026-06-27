@@ -4,6 +4,7 @@ import com.atlas.hotel.client.InventoryClient;
 import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.client.dto.AvailabilityResponse;
 import com.atlas.hotel.dto.CreateHotelRequest;
+import com.atlas.hotel.dto.RoomTypePriceResponse;
 import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.entity.HotelStatus;
 import com.atlas.hotel.entity.RoomType;
@@ -14,6 +15,7 @@ import com.atlas.hotel.exception.DuplicateHotelException;
 import com.atlas.hotel.exception.HotelNotFoundException;
 import com.atlas.hotel.exception.InvalidHotelException;
 import com.atlas.hotel.exception.InventoryUnavailableException;
+import com.atlas.hotel.exception.RoomTypeNotFoundException;
 import com.atlas.hotel.mapper.HotelMapper;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
@@ -28,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -206,6 +209,51 @@ class HotelServiceImplTest {
 
         assertThatThrownBy(() -> service.getHotel(HotelTestData.HOTEL_ID))
                 .isInstanceOf(HotelNotFoundException.class);
+    }
+
+    // ── getRoomTypePrice (ADR-0005) ───────────────────────────────────────────
+
+    @Test
+    void getRoomTypePrice_activeHotel_returnsPrice() {
+        Hotel hotel = HotelTestData.aHotel();
+        when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(hotel));
+
+        RoomTypePriceResponse result = service.getRoomTypePrice(HotelTestData.HOTEL_ID, HotelTestData.STANDARD_ROOM_ID);
+
+        assertThat(result.hotelId()).isEqualTo(HotelTestData.HOTEL_ID);
+        assertThat(result.roomTypeId()).isEqualTo(HotelTestData.STANDARD_ROOM_ID);
+        assertThat(result.pricePerNight().amount()).isEqualByComparingTo(new BigDecimal("120.00"));
+        assertThat(result.pricePerNight().currency()).isEqualTo("USD");
+        assertThat(result.status()).isEqualTo(HotelStatus.ACTIVE);
+    }
+
+    @Test
+    void getRoomTypePrice_withdrawnHotel_returnsWithdrawnStatus() {
+        Hotel hotel = HotelTestData.aHotel();
+        hotel.withdraw();
+        when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(hotel));
+
+        RoomTypePriceResponse result = service.getRoomTypePrice(HotelTestData.HOTEL_ID, HotelTestData.STANDARD_ROOM_ID);
+
+        assertThat(result.status()).isEqualTo(HotelStatus.WITHDRAWN);
+    }
+
+    @Test
+    void getRoomTypePrice_hotelNotFound_throwsHotelNotFoundException() {
+        when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getRoomTypePrice(HotelTestData.HOTEL_ID, HotelTestData.STANDARD_ROOM_ID))
+                .isInstanceOf(HotelNotFoundException.class);
+    }
+
+    @Test
+    void getRoomTypePrice_roomTypeNotFound_throwsRoomTypeNotFoundException() {
+        Hotel hotel = HotelTestData.aHotel();
+        when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(hotel));
+        UUID unknownRoomTypeId = UUID.fromString("f9999999-9999-9999-9999-999999999999");
+
+        assertThatThrownBy(() -> service.getRoomTypePrice(HotelTestData.HOTEL_ID, unknownRoomTypeId))
+                .isInstanceOf(RoomTypeNotFoundException.class);
     }
 
     private static HotelCatalogPayload mock_payload() {

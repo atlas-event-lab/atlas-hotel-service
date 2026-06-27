@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 
 /** Room type in create/update requests (hotel.yaml RoomTypeInput). Carries no id — identity is
  *  derived from {@code name} on update (resolved Open Question). */
@@ -22,5 +23,8 @@ public record RoomTypeInput(
 
         @NotNull
         @Valid
-        MoneyRequest pricePerNight
+        MoneyRequest pricePerNight,
+
+        @NotNull
+        List<RoomImageDto> images
 ) {}

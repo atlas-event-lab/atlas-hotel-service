@@ -2,14 +2,19 @@ package com.atlas.hotel.entity;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -61,6 +66,9 @@ public class RoomType {
     })
     private Money pricePerNight;
 
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<RoomImage> images = new ArrayList<>();
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -82,5 +90,13 @@ public class RoomType {
         this.totalRooms = totalRooms;
         this.maxOccupancy = maxOccupancy;
         this.pricePerNight = pricePerNight;
+    }
+
+    public void replaceImages(List<RoomImage> newImages) {
+        images.clear();
+        for (RoomImage image : newImages) {
+            images.add(image);
+            image.setRoom(this);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.atlas.hotel.event;
 
+import com.atlas.hotel.dto.HotelImageDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -24,5 +25,5 @@ public record HotelCatalogPayload(
         @NotNull
         List<RoomTypeEvent> roomTypes,
         List<String> amenities,
-        List<String> images
+        List<HotelImageDto> images
 ) {}

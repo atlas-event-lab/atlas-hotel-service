@@ -42,8 +42,8 @@ public class OutboxEventWriter {
      * @param eventType   produced event type, e.g. {@code HOTEL_CREATED}
      * @param payload     the business payload (never null, never carries metadata)
      */
-    public void write(UUID aggregateId, EventType eventType, Object payload) {
-        var envelope = new EventEnvelope<>(
+    public <T> void write(UUID aggregateId, EventType eventType, T payload) {
+        EventEnvelope<T> envelope = new EventEnvelope<>(
                 UUID.randomUUID(),
                 eventType.name(),
                 EVENT_VERSION,
