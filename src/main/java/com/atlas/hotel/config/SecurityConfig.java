@@ -11,6 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -34,8 +36,6 @@ public class SecurityConfig {
         "/swagger-resources/**",
         "/swagger-ui.html",
         "/v3/api-docs**",
-        "/actuator/health",
-        "/actuator/info"
     };
 
     return http
@@ -78,4 +78,13 @@ public class SecurityConfig {
     return source;
   }
 
+  @Bean
+  @Order(Ordered.HIGHEST_PRECEDENCE)
+  public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .securityMatcher("/actuator/**")   // covers /health + group sub-paths (/readiness,/liveness), /prometheus, etc.
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        .csrf(AbstractHttpConfigurer::disable);
+    return http.build();
+  }
 }
