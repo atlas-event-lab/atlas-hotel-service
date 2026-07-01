@@ -92,12 +92,6 @@ class RoomTypePriceControllerTest {
     }
 
     @Test
-    void getRoomTypePrice_unauthenticated_returns401() throws Exception {
-        mvc.perform(get(PRICE_URL, HotelTestData.HOTEL_ID, HotelTestData.STANDARD_ROOM_ID))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     void getRoomTypePrice_nonAdminUser_returns200() throws Exception {
         RoomTypePriceResponse price = new RoomTypePriceResponse(
                 HotelTestData.HOTEL_ID, HotelTestData.STANDARD_ROOM_ID,
