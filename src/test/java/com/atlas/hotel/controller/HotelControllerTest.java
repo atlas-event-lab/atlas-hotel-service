@@ -47,7 +47,7 @@ class HotelControllerTest {
     @MockitoBean HotelService hotelService;
     @MockitoBean JwtDecoder jwtDecoder;
 
-    private static final String BASE_URL = "/admin/api/v1/hotels";
+    private static final String BASE_URL = "/api/v1/hotels";
 
     private static RequestPostProcessor adminJwt() {
         return jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));

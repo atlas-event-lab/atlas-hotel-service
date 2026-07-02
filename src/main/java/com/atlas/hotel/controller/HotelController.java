@@ -29,14 +29,14 @@ import java.util.UUID;
  * RBAC and performs entity-to-DTO mapping (coding-standards §Layer Responsibilities).
  */
 @RestController
-@RequestMapping("/admin/api/v1/hotels")
+@RequestMapping("/api/v1/hotels")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class HotelController {
 
     private final HotelService hotelService;
 
     /** POST /api/v1/hotels — creates a hotel with its room types (hotel.yaml operationId: createHotel). */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<HotelResponse> createHotel(@RequestBody @Valid CreateHotelRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(hotelService.createHotel(request));
@@ -56,6 +56,7 @@ public class HotelController {
     }
 
     /** PUT /api/v1/hotels/{hotelId} — updates a hotel (hotel.yaml operationId: updateHotel). */
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{hotelId}")
     public ResponseEntity<HotelResponse> updateHotel(
             @PathVariable UUID hotelId,
@@ -64,6 +65,7 @@ public class HotelController {
     }
 
     /** DELETE /api/v1/hotels/{hotelId} — withdraws a hotel (hotel.yaml operationId: withdrawHotel). */
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{hotelId}")
     public ResponseEntity<Void> withdrawHotel(@PathVariable UUID hotelId) {
         hotelService.withdrawHotel(hotelId);
