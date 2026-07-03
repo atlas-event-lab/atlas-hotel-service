@@ -140,6 +140,7 @@ public class HotelServiceImpl implements HotelService {
     @Override
     @Transactional(readOnly = true)
     public RoomTypePriceResponse getRoomTypePrice(UUID hotelId, UUID roomTypeId) {
+        log.info("Get RoomType price for hotelId={}, roomTypeId={}", hotelId, roomTypeId);
         Hotel hotel = findHotel(hotelId);
         RoomType roomType = hotel.getRoomTypes().stream()
                 .filter(rt -> rt.getId().equals(roomTypeId))

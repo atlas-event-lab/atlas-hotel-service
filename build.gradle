@@ -44,6 +44,7 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     compileOnly 'org.projectlombok:lombok'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'io.github.openfeign:feign-micrometer'
 
     // Lombok must precede MapStruct so generated getters/constructors are visible to MapStruct.
     annotationProcessor 'org.projectlombok:lombok'
