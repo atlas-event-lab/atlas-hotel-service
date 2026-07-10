@@ -2,11 +2,9 @@ package com.atlas.hotel.messaging;
 
 import com.atlas.hotel.entity.OutboxEvent;
 import com.atlas.hotel.entity.OutboxStatus;
-import com.atlas.hotel.messaging.OutboxRelay;
 import com.atlas.hotel.repository.OutboxRepository;
 import com.atlas.hotel.shared.messaging.EventTopics;
 import com.atlas.hotel.shared.messaging.EventType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,7 +27,6 @@ class OutboxRelayTest {
 
     @Mock OutboxRepository outboxRepository;
     @Mock KafkaTemplate<String, Object> kafkaTemplate;
-    @org.mockito.Spy ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
     OutboxRelay relay;
@@ -44,7 +41,7 @@ class OutboxRelayTest {
     @Test
     void publishPending_sendsToTopic_andMarksPublished() {
         OutboxEvent event = pendingHotelCreated();
-        when(outboxRepository.findTop100ByStatusInOrderByCreatedAtAsc(any())).thenReturn(List.of(event));
+        when(outboxRepository.claimBatchForPublishing()).thenReturn(List.of(event));
         CompletableFuture<SendResult<String, Object>> ok = CompletableFuture.completedFuture(null);
         when(kafkaTemplate.send(eq(EventTopics.HOTEL_CREATED), eq(event.getAggregateId().toString()), any()))
                 .thenReturn(ok);
@@ -57,7 +54,7 @@ class OutboxRelayTest {
     @Test
     void publishPending_sendFails_marksFailed() {
         OutboxEvent event = pendingHotelCreated();
-        when(outboxRepository.findTop100ByStatusInOrderByCreatedAtAsc(any())).thenReturn(List.of(event));
+        when(outboxRepository.claimBatchForPublishing()).thenReturn(List.of(event));
         CompletableFuture<SendResult<String, Object>> failed = new CompletableFuture<>();
         failed.completeExceptionally(new RuntimeException("broker down"));
         when(kafkaTemplate.send(any(), any(), any())).thenReturn(failed);
