@@ -6,6 +6,7 @@ import com.atlas.hotel.dto.HotelResponse;
 import com.atlas.hotel.dto.UpdateHotelRequest;
 import com.atlas.hotel.service.HotelService;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,8 +21,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 /**
  * REST controller for the admin hotel catalog (hotel.yaml).
@@ -44,8 +43,7 @@ public class HotelController {
 
     /** GET /api/v1/hotels — paginated list (hotel.yaml operationId: listHotels). */
     @GetMapping
-    public ResponseEntity<HotelListResponse> listHotels(
-            @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<HotelListResponse> listHotels(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(hotelService.listHotels(pageable));
     }
 
@@ -59,8 +57,7 @@ public class HotelController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{hotelId}")
     public ResponseEntity<HotelResponse> updateHotel(
-            @PathVariable UUID hotelId,
-            @RequestBody @Valid UpdateHotelRequest request) {
+            @PathVariable UUID hotelId, @RequestBody @Valid UpdateHotelRequest request) {
         return ResponseEntity.ok(hotelService.updateHotel(hotelId, request));
     }
 

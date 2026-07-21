@@ -1,11 +1,17 @@
 package com.atlas.hotel.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import com.atlas.hotel.client.InventoryClient;
 import com.atlas.hotel.event.HotelEventPayloadFactory;
 import com.atlas.hotel.mapper.HotelMapper;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
 import com.atlas.hotel.support.HotelTestData;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,13 +24,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * Verifies that RBAC {@code ADMIN} is enforced inside the business service via
@@ -39,11 +38,20 @@ class HotelServiceAuthorizationTest {
     @EnableMethodSecurity
     static class MethodSecurityConfig {}
 
-    @MockitoBean HotelRepository hotelRepository;
-    @MockitoBean InventoryClient inventoryClient;
-    @MockitoBean OutboxEventWriter outboxEventWriter;
-    @MockitoBean HotelEventPayloadFactory payloadFactory;
-    @MockitoBean HotelMapper hotelMapper;
+    @MockitoBean
+    HotelRepository hotelRepository;
+
+    @MockitoBean
+    InventoryClient inventoryClient;
+
+    @MockitoBean
+    OutboxEventWriter outboxEventWriter;
+
+    @MockitoBean
+    HotelEventPayloadFactory payloadFactory;
+
+    @MockitoBean
+    HotelMapper hotelMapper;
 
     @Autowired
     HotelService hotelService;

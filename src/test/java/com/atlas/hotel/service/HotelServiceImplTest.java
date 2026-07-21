@@ -1,7 +1,15 @@
 package com.atlas.hotel.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.atlas.hotel.client.InventoryClient;
-import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.client.dto.AvailabilityResponse;
 import com.atlas.hotel.dto.CreateHotelRequest;
 import com.atlas.hotel.dto.RoomTypePriceResponse;
@@ -19,8 +27,13 @@ import com.atlas.hotel.exception.RoomTypeNotFoundException;
 import com.atlas.hotel.mapper.HotelMapper;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
+import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.support.HotelTestData;
 import feign.FeignException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,29 +43,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class HotelServiceImplTest {
 
-    @Mock HotelRepository hotelRepository;
-    @Mock InventoryClient inventoryClient;
-    @Mock OutboxEventWriter outboxEventWriter;
-    @Mock HotelEventPayloadFactory payloadFactory;
-    @Mock HotelMapper hotelMapper;
+    @Mock
+    HotelRepository hotelRepository;
+
+    @Mock
+    InventoryClient inventoryClient;
+
+    @Mock
+    OutboxEventWriter outboxEventWriter;
+
+    @Mock
+    HotelEventPayloadFactory payloadFactory;
+
+    @Mock
+    HotelMapper hotelMapper;
 
     @InjectMocks
     HotelServiceImpl service;
@@ -90,12 +98,15 @@ class HotelServiceImplTest {
     @Test
     void createHotel_duplicateRoomTypeNames_throwsInvalid() {
         CreateHotelRequest invalid = new CreateHotelRequest(
-                HotelTestData.NAME, HotelTestData.CITY, HotelTestData.COUNTRY, HotelTestData.RATING,
+                HotelTestData.NAME,
+                HotelTestData.CITY,
+                HotelTestData.COUNTRY,
+                HotelTestData.RATING,
                 List.of(HotelTestData.aRoomType("Standard", 10), HotelTestData.aRoomType("Standard", 20)),
-                List.of(), List.of());
+                List.of(),
+                List.of());
 
-        assertThatThrownBy(() -> service.createHotel(invalid))
-                .isInstanceOf(InvalidHotelException.class);
+        assertThatThrownBy(() -> service.createHotel(invalid)).isInstanceOf(InvalidHotelException.class);
 
         verify(hotelRepository, never()).save(any());
     }
@@ -106,8 +117,7 @@ class HotelServiceImplTest {
     void updateHotel_notFound_throws404() {
         when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.updateHotel(
-                HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(100)))
+        assertThatThrownBy(() -> service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(100)))
                 .isInstanceOf(HotelNotFoundException.class);
     }
 
@@ -117,8 +127,7 @@ class HotelServiceImplTest {
         when(inventoryClient.getAvailability(eq("HOTEL"), eq(HotelTestData.STANDARD_ROOM_ID)))
                 .thenReturn(new AvailabilityResponse("HOTEL", HotelTestData.STANDARD_ROOM_ID, 100, 150, 0, "ACTIVE"));
 
-        assertThatThrownBy(() -> service.updateHotel(
-                HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(50)))
+        assertThatThrownBy(() -> service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(50)))
                 .isInstanceOf(CapacityBelowReservedException.class);
 
         verify(outboxEventWriter, never()).write(any(), any(), any());
@@ -152,7 +161,8 @@ class HotelServiceImplTest {
         when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(HotelTestData.aHotel()));
         when(hotelRepository.existsByNameAndCityAndIdNot(any(), any(), any())).thenReturn(false);
 
-        service.updateHotel(HotelTestData.HOTEL_ID,
+        service.updateHotel(
+                HotelTestData.HOTEL_ID,
                 HotelTestData.anUpdateHotelRequest(List.of(HotelTestData.aRoomType("Suite", 5))));
 
         verifyNoInteractions(inventoryClient);
@@ -164,8 +174,7 @@ class HotelServiceImplTest {
         when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(HotelTestData.aHotel()));
         when(inventoryClient.getAvailability(any(), any())).thenThrow(mock_feignException());
 
-        assertThatThrownBy(() -> service.updateHotel(
-                HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(50)))
+        assertThatThrownBy(() -> service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(50)))
                 .isInstanceOf(InventoryUnavailableException.class);
 
         verify(outboxEventWriter, never()).write(any(), any(), any());
@@ -177,13 +186,19 @@ class HotelServiceImplTest {
         when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.of(hotel));
         when(hotelRepository.existsByNameAndCityAndIdNot(any(), any(), any())).thenReturn(false);
 
-        service.updateHotel(HotelTestData.HOTEL_ID, HotelTestData.anUpdateHotelRequest(
-                List.of(HotelTestData.aRoomType("Standard", 100), HotelTestData.aRoomType("Deluxe", 10))));
+        service.updateHotel(
+                HotelTestData.HOTEL_ID,
+                HotelTestData.anUpdateHotelRequest(
+                        List.of(HotelTestData.aRoomType("Standard", 100), HotelTestData.aRoomType("Deluxe", 10))));
 
         RoomType standard = hotel.getRoomTypes().stream()
-                .filter(rt -> rt.getName().equals("Standard")).findFirst().orElseThrow();
+                .filter(rt -> rt.getName().equals("Standard"))
+                .findFirst()
+                .orElseThrow();
         RoomType deluxe = hotel.getRoomTypes().stream()
-                .filter(rt -> rt.getName().equals("Deluxe")).findFirst().orElseThrow();
+                .filter(rt -> rt.getName().equals("Deluxe"))
+                .findFirst()
+                .orElseThrow();
 
         assertThat(standard.getId()).isEqualTo(HotelTestData.STANDARD_ROOM_ID);
         assertThat(deluxe.getId()).isNotEqualTo(HotelTestData.STANDARD_ROOM_ID);
@@ -207,8 +222,7 @@ class HotelServiceImplTest {
     void getHotel_notFound_throws404() {
         when(hotelRepository.findById(HotelTestData.HOTEL_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getHotel(HotelTestData.HOTEL_ID))
-                .isInstanceOf(HotelNotFoundException.class);
+        assertThatThrownBy(() -> service.getHotel(HotelTestData.HOTEL_ID)).isInstanceOf(HotelNotFoundException.class);
     }
 
     // ── getRoomTypePrice (ADR-0005) ───────────────────────────────────────────
@@ -258,14 +272,27 @@ class HotelServiceImplTest {
 
     private static HotelCatalogPayload mock_payload() {
         return new HotelCatalogPayload(
-                HotelTestData.HOTEL_ID, HotelTestData.NAME, HotelTestData.CITY, HotelTestData.COUNTRY,
-                HotelTestData.RATING, List.of(), List.of(), List.of());
+                HotelTestData.HOTEL_ID,
+                HotelTestData.NAME,
+                HotelTestData.CITY,
+                HotelTestData.COUNTRY,
+                HotelTestData.RATING,
+                List.of(),
+                List.of(),
+                List.of());
     }
 
     private static FeignException mock_feignException() {
         return new FeignException.ServiceUnavailable(
-                "inventory down", feign.Request.create(
-                        feign.Request.HttpMethod.GET, "/api/v1/inventory/HOTEL/x",
-                        java.util.Map.of(), null, null, null), null, null);
+                "inventory down",
+                feign.Request.create(
+                        feign.Request.HttpMethod.GET,
+                        "/api/v1/inventory/HOTEL/x",
+                        java.util.Map.of(),
+                        null,
+                        null,
+                        null),
+                null,
+                null);
     }
 }

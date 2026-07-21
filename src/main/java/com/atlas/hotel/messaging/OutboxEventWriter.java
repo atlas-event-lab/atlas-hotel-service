@@ -7,12 +7,11 @@ import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.shared.web.CorrelationIdFilter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Writes catalog events to the Transactional Outbox (EVT-009).
@@ -54,15 +53,8 @@ public class OutboxEventWriter {
                 PRODUCER,
                 payload);
 
-        outboxRepository.save(
-            new OutboxEvent(
-                UUID.randomUUID(),
-                AGGREGATE_TYPE,
-                aggregateId,
-                eventType,
-                EVENT_VERSION,
-                serialize(envelope))
-        );
+        outboxRepository.save(new OutboxEvent(
+                UUID.randomUUID(), AGGREGATE_TYPE, aggregateId, eventType, EVENT_VERSION, serialize(envelope)));
     }
 
     private String serialize(EventEnvelope<?> envelope) {

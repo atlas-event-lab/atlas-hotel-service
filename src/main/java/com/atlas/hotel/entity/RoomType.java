@@ -13,8 +13,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -23,9 +25,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * A bookable room category within a {@link Hotel}. Capacity ({@code totalRooms}) and price live
@@ -61,8 +60,10 @@ public class RoomType {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "amount",   column = @Column(name = "price_per_night_amount", nullable = false, precision = 19, scale = 2)),
-            @AttributeOverride(name = "currency", column = @Column(name = "currency",                nullable = false, length = 3))
+        @AttributeOverride(
+                name = "amount",
+                column = @Column(name = "price_per_night_amount", nullable = false, precision = 19, scale = 2)),
+        @AttributeOverride(name = "currency", column = @Column(name = "currency", nullable = false, length = 3))
     })
     private Money pricePerNight;
 

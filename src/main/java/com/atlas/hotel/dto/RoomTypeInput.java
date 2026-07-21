@@ -9,22 +9,8 @@ import java.util.List;
 /** Room type in create/update requests (hotel.yaml RoomTypeInput). Carries no id — identity is
  *  derived from {@code name} on update (resolved Open Question). */
 public record RoomTypeInput(
-
-        @NotBlank
-        String name,
-
-        @NotNull
-        @Min(1)
-        Integer totalRooms,
-
-        @NotNull
-        @Min(1)
-        Integer maxOccupancy,
-
-        @NotNull
-        @Valid
-        MoneyRequest pricePerNight,
-
-        @NotNull
-        List<RoomImageDto> images
-) {}
+        @NotBlank String name,
+        @NotNull @Min(1) Integer totalRooms,
+        @NotNull @Min(1) Integer maxOccupancy,
+        @NotNull @Valid MoneyRequest pricePerNight,
+        @NotNull List<RoomImageDto> images) {}

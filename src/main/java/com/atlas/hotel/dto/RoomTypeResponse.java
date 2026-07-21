@@ -10,5 +10,4 @@ public record RoomTypeResponse(
         int totalRooms,
         int maxOccupancy,
         MoneyResponse pricePerNight,
-        List<RoomImageDto> images
-) {}
+        List<RoomImageDto> images) {}

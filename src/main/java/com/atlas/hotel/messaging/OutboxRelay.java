@@ -4,17 +4,16 @@ import com.atlas.hotel.entity.OutboxEvent;
 import com.atlas.hotel.repository.OutboxRepository;
 import com.atlas.hotel.shared.messaging.EventTopics;
 import com.atlas.hotel.shared.messaging.EventType;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Phase-1 outbox relay (EVT-009): a scheduled poller that publishes outbox rows to Kafka.
@@ -54,13 +53,17 @@ public class OutboxRelay {
         for (OutboxEvent event : batch) {
             try {
                 String topic = resolveTopic(event.getEventType());
-                dispatched.add(new Dispatch(event,
-                        kafkaTemplate.send(topic, event.getAggregateId().toString(), event.getPayload())));
+                dispatched.add(new Dispatch(
+                        event, kafkaTemplate.send(topic, event.getAggregateId().toString(), event.getPayload())));
             } catch (Exception e) {
                 // Nothing left the buffer for this row (e.g. topic resolution) — fail it now.
                 event.markFailed();
-                log.error("Failed to dispatch outbox event: id={}, eventType={}, attempts={}",
-                        event.getId(), event.getEventType(), event.getAttempts(), e);
+                log.error(
+                        "Failed to dispatch outbox event: id={}, eventType={}, attempts={}",
+                        event.getId(),
+                        event.getEventType(),
+                        event.getAttempts(),
+                        e);
             }
         }
         try {
@@ -78,17 +81,28 @@ public class OutboxRelay {
             try {
                 dispatch.future().get();
                 event.markPublished(now);
-                log.debug("Outbox event published: id={}, eventType={}, aggregateId={}",
-                        event.getId(), event.getEventType(), event.getAggregateId());
+                log.debug(
+                        "Outbox event published: id={}, eventType={}, aggregateId={}",
+                        event.getId(),
+                        event.getEventType(),
+                        event.getAggregateId());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 event.markFailed();
-                log.error("Interrupted publishing outbox event: id={}, eventType={}, attempts={}",
-                        event.getId(), event.getEventType(), event.getAttempts(), e);
+                log.error(
+                        "Interrupted publishing outbox event: id={}, eventType={}, attempts={}",
+                        event.getId(),
+                        event.getEventType(),
+                        event.getAttempts(),
+                        e);
             } catch (Exception e) {
                 event.markFailed();
-                log.error("Failed to publish outbox event: id={}, eventType={}, attempts={}",
-                        event.getId(), event.getEventType(), event.getAttempts(), e);
+                log.error(
+                        "Failed to publish outbox event: id={}, eventType={}, attempts={}",
+                        event.getId(),
+                        event.getEventType(),
+                        event.getAttempts(),
+                        e);
             }
         }
 
@@ -98,8 +112,7 @@ public class OutboxRelay {
     }
 
     /** One dispatched send awaiting its broker acknowledgement. */
-    private record Dispatch(OutboxEvent event, CompletableFuture<SendResult<String, String>> future) {
-    }
+    private record Dispatch(OutboxEvent event, CompletableFuture<SendResult<String, String>> future) {}
 
     /** Maps an event type to its owning Hotel topic (topics.md). */
     private String resolveTopic(EventType eventType) {

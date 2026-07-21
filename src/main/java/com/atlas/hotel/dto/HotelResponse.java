@@ -1,7 +1,6 @@
 package com.atlas.hotel.dto;
 
 import com.atlas.hotel.entity.HotelStatus;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -15,5 +14,4 @@ public record HotelResponse(
         HotelStatus status,
         List<RoomTypeResponse> roomTypes,
         List<String> amenities,
-        List<HotelImageDto> images
-) {}
+        List<HotelImageDto> images) {}

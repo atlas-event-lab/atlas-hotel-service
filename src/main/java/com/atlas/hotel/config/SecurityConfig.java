@@ -3,6 +3,8 @@ package com.atlas.hotel.config;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,8 +13,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,62 +29,58 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    String[] publicMatchers = new String[]{
-        "/swagger-ui/**",
-        "/swagger-resources/**",
-        "/swagger-ui.html",
-        "/v3/api-docs**",
-    };
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String[] publicMatchers = new String[] {
+            "/swagger-ui/**", "/swagger-resources/**", "/swagger-ui.html", "/v3/api-docs**",
+        };
 
-    return http
-        .cors(Customizer.withDefaults())
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .formLogin(AbstractHttpConfigurer::disable)
-        .httpBasic(AbstractHttpConfigurer::disable)
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(publicMatchers).permitAll()
-            .requestMatchers(HttpMethod.GET, "/api/v1/hotels/**").permitAll()
-            .anyRequest().authenticated()
-        )
-        .oauth2ResourceServer(oauth2 -> oauth2.jwt(
-            jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
-        .build();
-  }
+        return http.cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.requestMatchers(publicMatchers)
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/hotels/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
+                .oauth2ResourceServer(
+                        oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
+                .build();
+    }
 
-  /**
-   * Wires the Keycloak realm-role converter into the JWT authentication converter.
-   */
-  @Bean
-  public JwtAuthenticationConverter jwtAuthenticationConverter() {
-    JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-    converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());
-    return converter;
-  }
+    /**
+     * Wires the Keycloak realm-role converter into the JWT authentication converter.
+     */
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());
+        return converter;
+    }
 
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("*"));
-    config.setAllowedMethods(List.of("*"));
-    config.setAllowedHeaders(List.of("*"));
-    config.setAllowCredentials(false);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("*"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(false);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-  }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
-  @Bean
-  @Order(Ordered.HIGHEST_PRECEDENCE)
-  public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .securityMatcher("/actuator/**")   // covers /health + group sub-paths (/readiness,/liveness), /prometheus, etc.
-        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-        .csrf(AbstractHttpConfigurer::disable);
-    return http.build();
-  }
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.securityMatcher(
+                        "/actuator/**") // covers /health + group sub-paths (/readiness,/liveness), /prometheus, etc.
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
 }

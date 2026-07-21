@@ -21,30 +21,29 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class RoomImage {
-  @Id
-  @Column(name = "id", nullable = false, updatable = false)
-  @EqualsAndHashCode.Include
-  private UUID id;
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
+    @EqualsAndHashCode.Include
+    private UUID id;
 
-  @Setter
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "room_id", nullable = false)
-  private RoomType room;
+    @Setter
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_id", nullable = false)
+    private RoomType room;
 
-  @Column(name = "url", nullable = false, length = 2048)
-  private String url;
+    @Column(name = "url", nullable = false, length = 2048)
+    private String url;
 
-  @Column(name = "caption")
-  private String caption;
+    @Column(name = "caption")
+    private String caption;
 
-  public RoomImage(UUID id, String url, String caption) {
-    this.id = id;
-    this.caption = caption;
-    this.url = url;
+    public RoomImage(UUID id, String url, String caption) {
+        this.id = id;
+        this.caption = caption;
+        this.url = url;
+    }
 
-  }
-
-  public RoomImageDto toRoomImageDto() {
-    return new RoomImageDto(url, caption);
-  }
+    public RoomImageDto toRoomImageDto() {
+        return new RoomImageDto(url, caption);
+    }
 }

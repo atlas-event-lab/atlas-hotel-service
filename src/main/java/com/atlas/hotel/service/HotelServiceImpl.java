@@ -21,7 +21,6 @@ import com.atlas.hotel.entity.RoomImage;
 import com.atlas.hotel.entity.RoomType;
 import com.atlas.hotel.event.HotelDeletedPayload;
 import com.atlas.hotel.event.HotelEventPayloadFactory;
-import com.atlas.hotel.shared.messaging.EventType;
 import com.atlas.hotel.exception.CapacityBelowReservedException;
 import com.atlas.hotel.exception.DuplicateHotelException;
 import com.atlas.hotel.exception.HotelNotFoundException;
@@ -31,13 +30,7 @@ import com.atlas.hotel.exception.RoomTypeNotFoundException;
 import com.atlas.hotel.mapper.HotelMapper;
 import com.atlas.hotel.messaging.OutboxEventWriter;
 import com.atlas.hotel.repository.HotelRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import com.atlas.hotel.shared.messaging.EventType;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +38,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Hotel catalog service. Validates input, persists the catalog aggregate and its event in one
@@ -88,8 +87,12 @@ public class HotelServiceImpl implements HotelService {
         Hotel saved = hotelRepository.save(hotel);
         outboxEventWriter.write(saved.getId(), EventType.HOTEL_CREATED, payloadFactory.toCatalogPayload(saved));
 
-        log.info("Hotel created: hotelId={}, name={}, city={}, roomTypes={}",
-                saved.getId(), saved.getName(), saved.getCity(), saved.getRoomTypes().size());
+        log.info(
+                "Hotel created: hotelId={}, name={}, city={}, roomTypes={}",
+                saved.getId(),
+                saved.getName(),
+                saved.getCity(),
+                saved.getRoomTypes().size());
 
         return hotelMapper.toResponse(saved);
     }
@@ -115,8 +118,11 @@ public class HotelServiceImpl implements HotelService {
 
         outboxEventWriter.write(hotel.getId(), EventType.HOTEL_UPDATED, payloadFactory.toCatalogPayload(hotel));
 
-        log.info("Hotel updated: hotelId={}, name={}, roomTypes={}",
-                hotel.getId(), hotel.getName(), hotel.getRoomTypes().size());
+        log.info(
+                "Hotel updated: hotelId={}, name={}, roomTypes={}",
+                hotel.getId(),
+                hotel.getName(),
+                hotel.getRoomTypes().size());
 
         return hotelMapper.toResponse(hotel);
     }
@@ -149,7 +155,9 @@ public class HotelServiceImpl implements HotelService {
         return new RoomTypePriceResponse(
                 hotel.getId(),
                 roomType.getId(),
-                new MoneyResponse(roomType.getPricePerNight().getAmount(), roomType.getPricePerNight().getCurrency()),
+                new MoneyResponse(
+                        roomType.getPricePerNight().getAmount(),
+                        roomType.getPricePerNight().getCurrency()),
                 hotel.getStatus());
     }
 
@@ -165,8 +173,8 @@ public class HotelServiceImpl implements HotelService {
     // -------------------------------------------------------------------------
 
     private void assertCapacityNotBelowReserved(Hotel hotel, List<RoomTypeInput> requested) {
-        Map<String, RoomType> existingByName = hotel.getRoomTypes().stream()
-                .collect(Collectors.toMap(RoomType::getName, Function.identity()));
+        Map<String, RoomType> existingByName =
+                hotel.getRoomTypes().stream().collect(Collectors.toMap(RoomType::getName, Function.identity()));
 
         for (RoomTypeInput input : requested) {
             RoomType existing = existingByName.get(input.name());
@@ -183,8 +191,7 @@ public class HotelServiceImpl implements HotelService {
 
     private int readReservedCount(UUID roomTypeId) {
         try {
-            AvailabilityResponse availability =
-                    inventoryClient.getAvailability(HOTEL_RESOURCE_TYPE, roomTypeId);
+            AvailabilityResponse availability = inventoryClient.getAvailability(HOTEL_RESOURCE_TYPE, roomTypeId);
             return availability.reservedCount();
         } catch (Exception e) {
             // A transient failure is a failed precondition — never silently skip the check.
@@ -206,18 +213,18 @@ public class HotelServiceImpl implements HotelService {
     }
 
     private List<RoomType> toRoomTypeEntities(List<RoomTypeInput> inputs) {
-        return inputs.stream().map(roomTypeInput -> {
-                var roomType = new RoomType(
-                    UUID.randomUUID(),
-                    roomTypeInput.name(),
-                    roomTypeInput.totalRooms(),
-                    roomTypeInput.maxOccupancy(),
-                    toMoney(roomTypeInput.pricePerNight())
-                );
-                roomType.replaceImages(toRoomImageEntities(roomTypeInput.images()));
-                return roomType;
-            }
-        ).toList();
+        return inputs.stream()
+                .map(roomTypeInput -> {
+                    var roomType = new RoomType(
+                            UUID.randomUUID(),
+                            roomTypeInput.name(),
+                            roomTypeInput.totalRooms(),
+                            roomTypeInput.maxOccupancy(),
+                            toMoney(roomTypeInput.pricePerNight()));
+                    roomType.replaceImages(toRoomImageEntities(roomTypeInput.images()));
+                    return roomType;
+                })
+                .toList();
     }
 
     private List<Amenity> toAmenityEntities(List<String> amenities) {
@@ -243,8 +250,8 @@ public class HotelServiceImpl implements HotelService {
             return List.of();
         }
         return images.stream()
-            .map(img -> new RoomImage(UUID.randomUUID(), img.url(), img.caption()))
-            .toList();
+                .map(img -> new RoomImage(UUID.randomUUID(), img.url(), img.caption()))
+                .toList();
     }
 
     private Money toMoney(MoneyRequest money) {
@@ -252,7 +259,6 @@ public class HotelServiceImpl implements HotelService {
     }
 
     private Hotel findHotel(UUID hotelId) {
-        return hotelRepository.findById(hotelId)
-                .orElseThrow(() -> new HotelNotFoundException(hotelId));
+        return hotelRepository.findById(hotelId).orElseThrow(() -> new HotelNotFoundException(hotelId));
     }
 }

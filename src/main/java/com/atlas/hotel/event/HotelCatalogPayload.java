@@ -3,7 +3,6 @@ package com.atlas.hotel.event;
 import com.atlas.hotel.dto.HotelImageDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -14,16 +13,11 @@ import java.util.UUID;
  * Inventory can seed room availability. Never carries live availability (data ownership).
  */
 public record HotelCatalogPayload(
-        @NotNull
-        UUID hotelId,
+        @NotNull UUID hotelId,
         String name,
         String city,
         String country,
         int rating,
-
-        @Valid
-        @NotNull
-        List<RoomTypeEvent> roomTypes,
+        @Valid @NotNull List<RoomTypeEvent> roomTypes,
         List<String> amenities,
-        List<HotelImageDto> images
-) {}
+        List<HotelImageDto> images) {}

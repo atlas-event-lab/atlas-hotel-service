@@ -5,10 +5,9 @@ import com.atlas.hotel.dto.HotelListResponse;
 import com.atlas.hotel.dto.HotelResponse;
 import com.atlas.hotel.dto.RoomTypePriceResponse;
 import com.atlas.hotel.dto.UpdateHotelRequest;
+import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-
-import java.util.UUID;
 
 /**
  * Hotel catalog operations. Admin writes require RBAC {@code ADMIN} (SEC-004) via

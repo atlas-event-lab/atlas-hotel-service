@@ -1,16 +1,15 @@
 package com.atlas.hotel.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.atlas.hotel.dto.HotelResponse;
 import com.atlas.hotel.entity.Amenity;
 import com.atlas.hotel.entity.Hotel;
 import com.atlas.hotel.entity.HotelImage;
 import com.atlas.hotel.support.HotelTestData;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class HotelMapperTest {
 

@@ -8,9 +8,8 @@ import java.util.UUID;
  */
 public class CapacityBelowReservedException extends RuntimeException {
 
-    public CapacityBelowReservedException(UUID roomTypeId, String roomTypeName,
-                                          int newTotalRooms, int reservedCount) {
-        super("Cannot lower totalRooms to " + newTotalRooms + " for room type '" + roomTypeName
-                + "' (" + roomTypeId + "): Inventory has " + reservedCount + " rooms reserved");
+    public CapacityBelowReservedException(UUID roomTypeId, String roomTypeName, int newTotalRooms, int reservedCount) {
+        super("Cannot lower totalRooms to " + newTotalRooms + " for room type '" + roomTypeName + "' (" + roomTypeId
+                + "): Inventory has " + reservedCount + " rooms reserved");
     }
 }

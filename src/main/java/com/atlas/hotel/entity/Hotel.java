@@ -11,15 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +19,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Aggregate Root for the hotel catalog. Owns descriptive data, room types (capacity + price),
@@ -120,8 +119,8 @@ public class Hotel {
      * keeps the per-room-type Inventory availability linked.
      */
     public void reconcileRoomTypes(List<RoomType> desired) {
-        Map<String, RoomType> existingByName = roomTypes.stream()
-                .collect(Collectors.toMap(RoomType::getName, Function.identity()));
+        Map<String, RoomType> existingByName =
+                roomTypes.stream().collect(Collectors.toMap(RoomType::getName, Function.identity()));
 
         List<String> desiredNames = desired.stream().map(RoomType::getName).toList();
         roomTypes.removeIf(rt -> !desiredNames.contains(rt.getName()));
@@ -152,7 +151,15 @@ public class Hotel {
         }
     }
 
-    public List<RoomType> getRoomTypes() { return Collections.unmodifiableList(roomTypes); }
-    public List<Amenity> getAmenities()  { return Collections.unmodifiableList(amenities); }
-    public List<HotelImage> getImages()  { return Collections.unmodifiableList(images); }
+    public List<RoomType> getRoomTypes() {
+        return Collections.unmodifiableList(roomTypes);
+    }
+
+    public List<Amenity> getAmenities() {
+        return Collections.unmodifiableList(amenities);
+    }
+
+    public List<HotelImage> getImages() {
+        return Collections.unmodifiableList(images);
+    }
 }

@@ -22,10 +22,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class HotelResyncEndpoint {
 
-  private final HotelCatalogReconciler reconciler;
+    private final HotelCatalogReconciler reconciler;
 
-  @WriteOperation
-  public ResyncResult resync() {
-    return reconciler.resyncAll();
-  }
+    @WriteOperation
+    public ResyncResult resync() {
+        return reconciler.resyncAll();
+    }
 }

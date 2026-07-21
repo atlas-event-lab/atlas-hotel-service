@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
 
 /**
@@ -15,28 +14,10 @@ import java.util.List;
  * Question); a shrinking room type is validated against Inventory before persisting (API-004).
  */
 public record UpdateHotelRequest(
-
-        @NotBlank
-        String name,
-
-        @NotBlank
-        String city,
-
-        @NotBlank
-        String country,
-
-        @NotNull
-        @Min(1)
-        @Max(5)
-        Integer rating,
-
-        @NotNull
-        @Size(min = 1)
-        @Valid
-        List<RoomTypeInput> roomTypes,
-
+        @NotBlank String name,
+        @NotBlank String city,
+        @NotBlank String country,
+        @NotNull @Min(1) @Max(5) Integer rating,
+        @NotNull @Size(min = 1) @Valid List<RoomTypeInput> roomTypes,
         List<String> amenities,
-
-        @Valid
-        List<HotelImageDto> images
-) {}
+        @Valid List<HotelImageDto> images) {}
